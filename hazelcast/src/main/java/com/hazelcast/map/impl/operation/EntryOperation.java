@@ -22,6 +22,7 @@ import com.hazelcast.config.MapConfig;
 import com.hazelcast.core.EntryEventType;
 import com.hazelcast.core.EntryView;
 import com.hazelcast.core.HazelcastException;
+import com.hazelcast.core.InMemoryObjectSafe;
 import com.hazelcast.core.ManagedContext;
 import com.hazelcast.core.Offloadable;
 import com.hazelcast.core.ReadOnly;
@@ -161,6 +162,7 @@ public class EntryOperation extends MutatingKeyBasedMapOperation implements Back
 
     // EntryOffloadableOperation
     private transient boolean readOnly;
+    private transient boolean inMemoryObjectSafe;
     private transient long begin;
     private transient OperationServiceImpl ops;
     private transient ExecutionService exs;
@@ -182,6 +184,7 @@ public class EntryOperation extends MutatingKeyBasedMapOperation implements Back
         this.exs = getNodeEngine().getExecutionService();
         this.begin = getNow();
         this.readOnly = entryProcessor instanceof ReadOnly;
+        this.inMemoryObjectSafe = entryProcessor instanceof InMemoryObjectSafe;
 
         final SerializationService serializationService = getNodeEngine().getSerializationService();
         final ManagedContext managedContext = serializationService.getManagedContext();
@@ -205,7 +208,7 @@ public class EntryOperation extends MutatingKeyBasedMapOperation implements Back
             throw new HazelcastException("EntryProcessor.getBackupProcessor() should return null if ReadOnly implemented");
         }
 
-        boolean shouldCloneForOffloading = OBJECT.equals(mapContainer.getMapConfig().getInMemoryFormat());
+        boolean shouldCloneForOffloading = OBJECT.equals(mapContainer.getMapConfig().getInMemoryFormat()) && !inMemoryObjectSafe;
         Object value = recordStore.get(dataKey, false);
         value = shouldCloneForOffloading ? toData(value) : value;
 
