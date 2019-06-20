@@ -22,6 +22,7 @@
     <artifactId>hazelcast</artifactId>
     <description>Core Hazelcast Module</description>
     <packaging>jar</packaging>
+    <version>3.8.9-fuze</version>
 
     <parent>
         <groupId>com.hazelcast</groupId>
